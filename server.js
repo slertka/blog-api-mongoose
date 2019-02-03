@@ -43,12 +43,15 @@ app.get('/posts/:id', (req, res) => {
 // POST request to /posts
 app.post('/posts', (req, res) => {
   const requiredFields = ['title', 'author', 'content'];
+  // Verify required fields are included in request body
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
       res.status(400).json({message: `Missing ${field} in request body`});
-    } else if (field == 'author' && !(req.body.author.firstName || req.body.author.lastName)) {
-      res.status(400).json({message: `The author field must be a nested object with author.firstName and author.lastName`});
+    } 
+    // Verify if author is a nested object
+    else if (field == 'author' && !(req.body.author.firstName || req.body.author.lastName)) {
+      res.status(400).json({message: `The author key must be a nested object with author.firstName and author.lastName`});
     }
   }
 
@@ -67,12 +70,41 @@ app.post('/posts', (req, res) => {
 
 // PUT request to /posts/:id
 app.put('/posts/:id', (req, res) => {
+  // Check if request and body ids match
+  if (!(req.params.id && req.body.id && req.params.id === req.body.id)) {
+    res.status(400).json({message: `The request parameter id ${req.params.id} must match the request body id ${req.body.id}`});
+  }
 
+  // Check if author is a nested object
+  if (req.body.author && !(req.body.author.firstName || req.body.author.lastName)) {
+    res.status(400).json({message: `The author key must be a nested object with author.firstName and author.lastName`});
+  }
+
+  // Check that only the fields title, author, content, and id are the request body keys
+  const requiredKeys = ['title', 'author', 'content', 'id']
+  const bodyKeys = Object.keys(req.body);
+  for (let i=0; i < bodyKeys.length; i++) {
+    const bodyKey = bodyKeys[i];
+    if (!(requiredKeys.includes(bodyKey))) {
+      res.status(400).json({message: `${bodyKey} is not a valid key:value pair in the response body. The response body may only contain the keys [${requiredKeys}]`});
+    }
+  }
+
+  Post
+    .findByIdAndUpdate(req.params.id, { $set: req.body })
+    // Why won't this send the updated post? When I do a GET request, I show that it's updated
+    .then(blogPost => res.status(200).send(blogPost.serialize()))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({message: "Internal server error"});
+    })
 })
 
 // DELETE reqeust to /posts/:id
 app.delete('/posts/:id', (req, res) => {
-
+  Post
+    .findByIdAndDelete(req.params.id)
+    .then(res.status(204).end())
 })
 
 // catch-all endpoint if client makes request to non-existent endpoint
