@@ -18,9 +18,9 @@ app.use(morgan('common'));
 // GET request to /posts
 app.get('/posts', (req, res) => {
   Post.find()
-    .then(blogposts => {
+    .then(blogPosts => {
       res.json({
-        blogposts: blogposts.map(post => post.serialize())
+        blogPosts: blogPosts.map(post => post.serialize())
       })
     })
     .catch(err => {
@@ -31,7 +31,13 @@ app.get('/posts', (req, res) => {
 
 // GET request to /posts/:id
 app.get('/posts/:id', (req, res) => {
-
+  Post
+    .findById(req.params.id)
+    .then(blogPost => res.json(blogPost.serialize()))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({message: "Internal server error"})
+    })
 })
 
 // POST request to /posts
