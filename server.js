@@ -42,7 +42,27 @@ app.get('/posts/:id', (req, res) => {
 
 // POST request to /posts
 app.post('/posts', (req, res) => {
+  const requiredFields = ['title', 'author', 'content'];
+  for (let i=0; i<requiredFields.length; i++) {
+    const field = requiredFields[i];
+    if (!(field in req.body)) {
+      res.status(400).json({message: `Missing ${field} in request body`});
+    } else if (field == 'author' && !(req.body.author.firstName || req.body.author.lastName)) {
+      res.status(400).json({message: `The author field must be a nested object with author.firstName and author.lastName`});
+    }
+  }
 
+  Post
+    .create({
+      title: req.body.title,
+      author: req.body.author,
+      content: req.body.content
+    })
+    .then(post => res.status(201).json(post.serialize()))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({message: "Internal server error"})
+    })
 })
 
 // PUT request to /posts/:id
