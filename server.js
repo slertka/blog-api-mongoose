@@ -7,8 +7,8 @@ const mongoose = require('mongoose');
 // use mongoose promises as global promises
 mongoose.Promise = global.Promise;
 
-const {PORT, DATABASE_URL} = require('./config');
-const {BlogPost} = require('./models')
+const { PORT, DATABASE_URL } = require('./config');
+const { Post } = require('./models')
 
 const app = express();
 
@@ -17,7 +17,16 @@ app.use(morgan('common'));
 
 // GET request to /posts
 app.get('/posts', (req, res) => {
-
+  Post.find()
+    .then(blogposts => {
+      res.json({
+        blogposts: blogposts.map(post => post.serialize())
+      })
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({message: "Internal server error"})
+    })
 })
 
 // GET request to /posts/:id
@@ -36,7 +45,7 @@ app.put('/posts/:id', (req, res) => {
 })
 
 // DELETE reqeust to /posts/:id
-app.delete('/posts/:id', (req, res) {
+app.delete('/posts/:id', (req, res) => {
 
 })
 

@@ -20,10 +20,11 @@ blogPostSchema.methods.serialize = function() {
   return {
     title: this.title,
     author: this.authorName,
-    content: this.content
+    content: this.content,
+    created: new Date()
   }
 }
 
-const BlogPost = mongoose.model('BlogPost', blogPostSchema);
+const Post = mongoose.model('Post', blogPostSchema, 'blogPosts');
 
-module.exports = {BlogPost};
+module.exports = {Post};
